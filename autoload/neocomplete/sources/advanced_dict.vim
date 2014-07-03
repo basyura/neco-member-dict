@@ -36,26 +36,41 @@ function! s:source.hooks.on_init(context)
     endif
   endfor
   let s:cache[&filetype] = dict
-
-  echo dict
 endfunction
 "
 function! s:source.gather_candidates(context)
 
+  let &titlestring = a:context.input . ' - ' . a:context.complete_str . ' - ' . a:context.complete_pos
   let pos = a:context.complete_pos - 1
-  let head = ""
-  if pos > 0 && a:context.input[pos] == '.'
-    while 1
-      let pos = pos -1  
-      let chr = a:context.input[pos]
-      if chr == '' || chr == ' ' || chr == '('
-        break
-      endif
-      let head = chr . head
-    endwhile
+  if pos <= 0
+    return []
   endif
 
+  let head = ""
+
+  let trigger = ''
+
+  if a:context.input[pos] == '.'
+    let trigger = '.'
+  elseif a:context.input[pos] == ':'
+    "let trigger = ':'
+  endif
+
+  if trigger == ''
+    return []
+  endif
+
+  while 1
+    let pos = pos -1  
+    let chr = a:context.input[pos]
+    if chr == '' || chr == ' ' || chr == '(' || chr == '.'
+      break
+    endif
+    let head = chr . head
+  endwhile
+
   let &titlestring = a:context.input . ' - ' . a:context.complete_str . ' - ' . a:context.complete_pos . ' : ' . head
+
 
   let candidates = get(s:cache[&filetype], head, [])
 
