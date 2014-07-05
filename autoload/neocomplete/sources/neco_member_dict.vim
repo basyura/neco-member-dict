@@ -62,7 +62,7 @@ function! s:source.gather_candidates(context)
   let cache      = s:get_cache(&filetype)
   let candidates = get(cache, head, [])
 
-  return map(copy(candidates), '{"word" : v:val, "menu" : "[AD]" }')
+  return map(copy(candidates), '{"word" : v:val, "menu" : "[MD]" }')
 endfunction
 "
 " source#define
@@ -81,7 +81,7 @@ function! s:get_cache(filetype)
   let path = get(g:neocomplete#sources#dictionary#dictionaries, a:filetype, '')
   if path == ''
     let s:cache[a:filetype] = {}
-    return
+    return {}
   endif
   let dict = {}
   for line in readfile(path)
