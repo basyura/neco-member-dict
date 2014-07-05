@@ -48,19 +48,27 @@ function! s:source.gather_candidates(context)
     return []
   endif
 
-  let head = ''
+  let short_head = ''
+  let long_head  = ''
   while 1
     let pos = pos -1  
     let chr = a:context.input[pos]
-    if chr == '' || chr == ' ' || chr == '(' || chr == '.'
+    if short_head == '' && chr == '.' 
+      let short_head = long_head
+    endif
+    if chr == '' || chr == ' ' || chr == '('
       break
     endif
-    let head = chr . head
+    let long_head = chr . long_head
   endwhile
 
   "let &titlestring = a:context.input . ' - ' . a:context.complete_str . ' - ' . a:context.complete_pos . ' : ' . head
   let cache      = s:get_cache(&filetype)
-  let candidates = get(cache, head, [])
+
+  let candidates = get(cache, long_head, [])
+  if len(candidates) == 0
+    let candidates = get(cache, short_head, [])
+  endif
 
   return map(copy(candidates), '{"word" : v:val, "menu" : "[MD]" }')
 endfunction
@@ -83,17 +91,38 @@ function! s:get_cache(filetype)
     let s:cache[a:filetype] = {}
     return {}
   endif
+  "
+  " UIWindow.alloc.initWithFrame
+  "
+  " UIWindow.alloc
+  "          hoge
+  "          fuga
+  "
+  " dict['ruby'] = {'UIWindow' : ['alloc', 'hoge', 'fuga']}
+  " dict['ruby'] = {'UIWindow.alloc' : ['initWithFrame', 'initWithNibName']}
+  "
   let dict = {}
   for line in readfile(path)
     let pair = split(line, '\.')
     if len(pair) < 2
       continue
     endif
-    if has_key(dict, pair[0])
-      call add(dict[pair[0]], pair[1])
-    else
-      let dict[pair[0]] = [pair[1]]
-    endif
+
+    let key = pair[0]
+    for value in pair[1:]
+      if has_key(dict, key)
+        call add(dict[key], value)
+      else
+        let dict[key] = [value]
+      endif
+      let key = key . '.' . value
+    endfor
+
+    "if has_key(dict, pair[0])
+      "call add(dict[pair[0]], pair[1])
+    "else
+      "let dict[pair[0]] = [pair[1]]
+    "endif
   endfor
   let s:cache[a:filetype] = dict
 
