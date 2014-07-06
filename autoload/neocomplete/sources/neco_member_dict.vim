@@ -56,7 +56,7 @@ function! s:source.gather_candidates(context)
     if short_head == '' && chr == '.' 
       let short_head = long_head
     endif
-    if chr == '' || chr == ' ' || chr == '('
+    if index(['', ' ', '(', '['], chr) >= 0
       break
     endif
     let long_head = chr . long_head
